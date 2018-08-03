@@ -58,7 +58,7 @@ class NestedSelectInput < ActiveAdminAddons::InputBase
       parent_level_data = hierarchy[next_idx] if hierarchy.count != next_idx
       if parent_level_data
         level_data[:parent_attribute] = parent_level_data[:attribute]
-        level_data[:parent_virtual] = parent_level_data[:virtual]
+        level_data[:parent_is_field] = parent_level_data[:is_field]
         set_parent_value(level_data)
       end
     end
@@ -66,7 +66,7 @@ class NestedSelectInput < ActiveAdminAddons::InputBase
 
   def set_parent_value(level_data)
     parent_attribute = level_data[:parent_attribute]
-    build_virtual_attr(parent_attribute, level_data[:parent_virtual])
+    build_virtual_attr(parent_attribute, level_data[:parent_is_field])
     instance = instance_from_attribute_name(level_data[:attribute])
     if instance && instance.respond_to?(parent_attribute)
       @object.send("#{parent_attribute}=", instance.send(parent_attribute))
@@ -81,12 +81,12 @@ class NestedSelectInput < ActiveAdminAddons::InputBase
     klass.find_by_id(attribute_value)
   end
 
-  def build_virtual_attr(attribute_name, virtual)
+  def build_virtual_attr(attribute_name, is_field)
     if @object.respond_to?(attribute_name)
-      return unless virtual
+      return if is_field
       fail "#{attribute_name} is already defined"
     else
-      fail "#{attribute_name} can't be optional and not defined" unless virtual
+      fail "#{attribute_name} can't be optional and not defined" if is_field
       @object.singleton_class.send(:attr_accessor, attribute_name)
     end
   end
